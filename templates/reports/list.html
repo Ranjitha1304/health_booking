@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>My Medical Reports</h2>
+
+<div class="row">
+    {% for report in reports %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ report.title }}</h5>
+                <p class="card-text">
+                    <strong>Category:</strong> {{ report.get_category_display }}<br>
+                    <strong>Uploaded:</strong> {{ report.uploaded_at|date }}<br>
+                    <strong>Description:</strong> {{ report.description|truncatewords:10 }}
+                </p>
+                
+                {% if report.shared_with %}
+                <div class="alert alert-info py-2">
+                    <small>
+                        <i class="fas fa-share-alt"></i> 
+                        Shared with: <strong>Dr. {{ report.shared_with.last_name }}</strong>
+                        {% if report.doctor_response %}
+                        <span class="badge bg-success ms-2">Response Received</span>
+                        {% endif %}
+                    </small>
+                </div>
+                {% else %}
+                <div class="alert alert-warning py-2">
+                    <small>
+                        <i class="fas fa-info-circle"></i> 
+                        Not shared with any doctor
+                    </small>
+                </div>
+                {% endif %}
+                
+                <a href="{% url 'report_detail' report.id %}" class="btn btn-primary btn-sm">
+                    View Details
+                    {% if report.doctor_response %}
+                    <span class="badge bg-white text-primary ms-1">💬</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>No Medical Reports</h5>
+            <p>
+                {% if user_type == 'patient' %}
+                You haven't uploaded any medical reports yet.
+                {% else %}
+                No reports have been shared with you yet.
+                {% endif %}
+            </p>
+            {% if show_upload_button %}
+            <a href="{% url 'upload_report' %}" class="btn btn-success">Upload Your First Report</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Only show Upload button for patients -->
+{% if show_upload_button %}
+<a href="{% url 'upload_report' %}" class="btn btn-success">Upload New Report</a>
+{% endif %}
+
+<a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}

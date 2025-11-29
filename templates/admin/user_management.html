@@ -1,0 +1,87 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}User Management{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="m-0 font-weight-bold">
+            <i class="fas fa-users"></i> All Users ({{ users.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>User Type</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.is_staff %}
+                            <span class="badge bg-warning">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.get_full_name|default:"-" }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if user.profile.user_type == 'doctor' %}bg-info
+                                {% else %}bg-success{% endif %}">
+                                {{ user.profile.get_user_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.profile.user_type == 'doctor' %}
+                            <span class="badge 
+                                {% if user.profile.status == 'approved' %}bg-success
+                                {% elif user.profile.status == 'pending' %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ user.profile.get_status_display }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            {% if not user.is_staff %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                {% if user.is_active %}
+                                <button type="submit" name="action" value="deactivate" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-user-slash"></i> Deactivate
+                                </button>
+                                {% else %}
+                                <button type="submit" name="action" value="activate" class="btn btn-success btn-sm">
+                                    <i class="fas fa-user-check"></i> Activate
+                                </button>
+                                {% endif %}
+                                <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm" 
+                                        onclick="return confirm('Are you sure you want to delete this user?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">Admin User</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

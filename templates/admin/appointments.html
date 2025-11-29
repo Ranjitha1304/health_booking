@@ -1,0 +1,60 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}All Appointments{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow">
+    <div class="card-header bg-success text-white">
+        <h5 class="m-0 font-weight-bold">
+            <i class="fas fa-calendar-check"></i> All Appointments ({{ appointments.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if appointments %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Appointment Date</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>
+                                <strong>{{ appointment.patient.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ appointment.patient.email }}</small>
+                            </td>
+                            <td>
+                                <strong>Dr. {{ appointment.doctor.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ appointment.doctor.profile.get_specialization_display }}</small>
+                            </td>
+                            <td>{{ appointment.appointment_date }}</td>
+                            <td>{{ appointment.reason|truncatewords:10 }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if appointment.status == 'scheduled' %}bg-primary
+                                    {% elif appointment.status == 'completed' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ appointment.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ appointment.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No appointments found in the system.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

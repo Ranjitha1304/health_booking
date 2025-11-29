@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Register</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic User Fields -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Type -->
+            <div class="mb-3">
+                <label class="form-label">Register As</label>
+                <div>
+                    {% for choice in form.user_type %}
+                        <div class="form-check form-check-inline">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                {{ choice.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                {{ form.phone }}
+            </div>
+
+            <!-- Doctor Specific Fields (Initially Hidden) -->
+            <div id="doctor-fields" style="display: none;">
+                <h5>Doctor Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Specialization</label>
+                            {{ form.specialization }}
+                            {% if form.specialization.errors %}
+                                <div class="text-danger">{{ form.specialization.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">License Number</label>
+                            {{ form.license_number }}
+                            {% if form.license_number.errors %}
+                                <div class="text-danger">{{ form.license_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Years of Experience</label>
+                            {{ form.experience }}
+                            {% if form.experience.errors %}
+                                <div class="text-danger">{{ form.experience.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Hospital Name</label>
+                            {{ form.hospital_name }}
+                            {% if form.hospital_name.errors %}
+                                <div class="text-danger">{{ form.hospital_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Register</button>
+            <a href="{% url 'login' %}" class="btn btn-secondary">Already have an account? Login</a>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+    const doctorFields = document.getElementById('doctor-fields');
+    
+    function toggleDoctorFields() {
+        const selectedValue = document.querySelector('input[name="user_type"]:checked').value;
+        if (selectedValue === 'doctor') {
+            doctorFields.style.display = 'block';
+            // Make doctor fields required
+            document.querySelector('select[name="specialization"]').required = true;
+            document.querySelector('input[name="license_number"]').required = true;
+            document.querySelector('input[name="experience"]').required = true;
+            document.querySelector('input[name="hospital_name"]').required = true;
+        } else {
+            doctorFields.style.display = 'none';
+            // Remove required attribute
+            document.querySelector('select[name="specialization"]').required = false;
+            document.querySelector('input[name="license_number"]').required = false;
+            document.querySelector('input[name="experience"]').required = false;
+            document.querySelector('input[name="hospital_name"]').required = false;
+        }
+    }
+    
+    userTypeRadios.forEach(radio => {
+        radio.addEventListener('change', toggleDoctorFields);
+    });
+    
+    // Initialize on page load
+    toggleDoctorFields();
+});
+</script>
+{% endblock %}

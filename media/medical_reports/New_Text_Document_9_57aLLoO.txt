@@ -1,0 +1,19 @@
+A semantic element clearly describes its meaning to both the browser and the developer. Examples of non-semantic elements: <div> and <span> - Tells nothing ...
+
+Difference Between Inline and Block Elements in HTML
+
+Inline elements never start from a new line.Inline elements only cover the space as bounded by the tags in the HTML element
+Block elements always start from a new line.Block elements cover space from left to right as far as it can go.
+
+Software development life cycle (SDLC) is a structured process that is used to 
+design, develop, and test good-quality software.
+
+business requirements document, or BRD, is a formal document that outlines a project  requirements,
+
+The primary role of a PMO is to establish and maintain project management standards, processes,ensuring that projects are executed efficiently.
+Once the project plan is in place, project managers are responsible for allocating resources to each stage of the SDLC. This includes assigning developers, testers, and other team members to specific tasks 
+executing projects and is tasked with ensuring projects are delivered on time and within budget.
+
+a Functional Specification Document (FSD) is a outlines the functional requirements of a software system or product. It serves as a bridge between the client's expectations and the development team's execution strategy.
+
+This is the meaning of “UTF”, or “Unicode Transformation Format.” There are other encoding systems for Unicode besides UTF-8, but UTF-8 is unique because it represents characters in one-byte units.

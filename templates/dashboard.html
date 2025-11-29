@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Welcome, {{ user.first_name }}!</h2>
+<p>User Type: <strong>{{ profile.user_type|title }}</strong></p>
+
+{% if user.is_staff %}
+<div class="alert alert-info">
+    <h5><i class="fas fa-crown"></i> Administrator Access</h5>
+    <p>You have administrative privileges. Access the admin panel to manage users and approvals.</p>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-warning">Go to Admin Panel</a>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    {% if profile.user_type == 'patient' %}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'book_appointment' %}" class="btn btn-primary me-2">Book Appointment</a>
+                <a href="{% url 'upload_report' %}" class="btn btn-success">Upload Report</a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Upcoming Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% for appointment in appointments %}
+                    {% if appointment.status == 'scheduled' or appointment.status == 'confirmed' %}
+                    <div class="border p-2 mb-2">
+                        <strong>Dr. {{ appointment.doctor.last_name }}</strong><br>
+                        {{ appointment.appointment_date }}<br>
+                        <span class="badge 
+                            {% if appointment.status == 'confirmed' %}bg-success
+                            {% else %}bg-primary{% endif %}">
+                            {{ appointment.get_status_display }}
+                        </span><br>
+                        Reason: {{ appointment.reason }}
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <p>No upcoming appointments.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Reports</h5>
+            </div>
+            <div class="card-body">
+                {% for report in reports|slice:":5" %}
+                <div class="border p-2 mb-2">
+                    <strong>{{ report.title }}</strong><br>
+                    {{ report.uploaded_at|date }}<br>
+                    <a href="{% url 'report_detail' report.id %}">View Details</a>
+                </div>
+                {% empty %}
+                <p>No reports uploaded yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Doctor Dashboard -->
+    <div class="col-12">
+        <!-- Doctor Tools Card - ADDED THIS NEW CARD -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0"><i class="fas fa-tools"></i> Doctor Tools</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'manage_unavailability' %}" class="btn btn-warning me-2 mb-2">
+                    <i class="fas fa-calendar-times"></i> Manage Unavailable Dates
+                </a>
+                <a href="{% url 'appointment_list' %}" class="btn btn-info me-2 mb-2">
+                    <i class="fas fa-list"></i> View All Appointments
+                </a>
+                <a href="{% url 'report_list' %}" class="btn btn-success mb-2">
+                    <i class="fas fa-file-medical"></i> View Shared Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Today's Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% for appointment in appointments %}
+                    {% if appointment.status == 'scheduled' or appointment.status == 'confirmed' %}
+                    <div class="border p-2 mb-2">
+                        <strong>Patient: {{ appointment.patient.get_full_name }}</strong><br>
+                        {{ appointment.appointment_date }}<br>
+                        <span class="badge 
+                            {% if appointment.status == 'confirmed' %}bg-success
+                            {% else %}bg-primary{% endif %}">
+                            {{ appointment.get_status_display }}
+                        </span><br>
+                        Reason: {{ appointment.reason }}
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <p>No appointments scheduled.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Shared Reports</h5>
+            </div>
+            <div class="card-body">
+                {% for report in shared_reports %}
+                <div class="border p-2 mb-2">
+                    <strong>{{ report.title }}</strong><br>
+                    <small>Patient: {{ report.patient.get_full_name }}</small><br>
+                    {% if report.doctor_response %}
+                    <span class="badge bg-success">Response Sent</span>
+                    {% else %}
+                    <span class="badge bg-warning">Awaiting Response</span>
+                    {% endif %}<br>
+                    <a href="{% url 'report_detail' report.id %}">View & Respond</a>
+                </div>
+                {% empty %}
+                <p>No reports shared with you.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

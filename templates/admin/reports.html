@@ -1,0 +1,70 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}Medical Reports{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow">
+    <div class="card-header bg-danger text-white">
+        <h5 class="m-0 font-weight-bold">
+            <i class="fas fa-file-medical"></i> All Medical Reports ({{ reports.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Report Title</th>
+                            <th>Shared With Doctor</th>
+                            <th>Uploaded Date</th>
+                            <th>Has Response</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <strong>{{ report.patient.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ report.patient.email }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ report.title }}</strong><br>
+                                <small class="text-muted">{{ report.description|truncatewords:5 }}</small>
+                            </td>
+                            <td>
+                                {% if report.shared_with %}
+                                <strong>Dr. {{ report.shared_with.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ report.shared_with.profile.get_specialization_display }}</small>
+                                {% else %}
+                                <span class="text-muted">Not Shared</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.uploaded_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if report.doctor_response %}
+                                <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                <span class="badge bg-warning">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'report_detail' report.id %}" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No medical reports found in the system.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

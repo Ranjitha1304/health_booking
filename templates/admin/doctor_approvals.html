@@ -1,0 +1,113 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_title %}Doctor Approvals{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow">
+    <div class="card-header bg-warning text-white">
+        <h5 class="m-0 font-weight-bold">
+            <i class="fas fa-user-md"></i> Pending Doctor Approvals
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if pending_doctors %}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Doctor Name</th>
+                            <th>Specialization</th>
+                            <th>Hospital</th>
+                            <th>Experience</th>
+                            <th>License Number</th>
+                            <th>Registration Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in pending_doctors %}
+                        <tr>
+                            <td>
+                                <strong>Dr. {{ profile.user.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ profile.user.email }}</small>
+                            </td>
+                            <td>{{ profile.get_specialization_display }}</td>
+                            <td>{{ profile.hospital_name }}</td>
+                            <td>{{ profile.experience }} years</td>
+                            <td><code>{{ profile.license_number }}</code></td>
+                            <td>{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="doctor_id" value="{{ profile.id }}">
+                                    <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> No pending doctor approvals!
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="m-0 font-weight-bold">
+                    <i class="fas fa-check-circle"></i> Approved Doctors ({{ approved_doctors.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if approved_doctors %}
+                    <div class="list-group">
+                        {% for profile in approved_doctors %}
+                        <div class="list-group-item">
+                            <strong>Dr. {{ profile.user.get_full_name }}</strong><br>
+                            <small>{{ profile.get_specialization_display }} - {{ profile.hospital_name }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No approved doctors.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="m-0 font-weight-bold">
+                    <i class="fas fa-times-circle"></i> Rejected Doctors ({{ rejected_doctors.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if rejected_doctors %}
+                    <div class="list-group">
+                        {% for profile in rejected_doctors %}
+                        <div class="list-group-item">
+                            <strong>Dr. {{ profile.user.get_full_name }}</strong><br>
+                            <small>{{ profile.get_specialization_display }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No rejected doctors.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

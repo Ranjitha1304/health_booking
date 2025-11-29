@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>My Appointments</h2>
+
+{% if user_type == 'doctor' %}
+<div class="mb-3">
+    <a href="{% url 'manage_unavailability' %}" class="btn btn-warning">
+        <i class="fas fa-calendar-times"></i> Manage Unavailable Dates
+    </a>
+</div>
+{% endif %}
+
+<div class="row">
+    {% for appointment in appointments %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {% if user_type == 'patient' %}
+                    Dr. {{ appointment.doctor.last_name }}
+                    {% else %}
+                    Patient: {{ appointment.patient.get_full_name }}
+                    {% endif %}
+                </h5>
+                <p class="card-text">
+                    <strong>Date:</strong> {{ appointment.appointment_date }}<br>
+                    <strong>Reason:</strong> {{ appointment.reason }}<br>
+                    <strong>Status:</strong> 
+                    <span class="badge 
+                        {% if appointment.status == 'confirmed' %}bg-success
+                        {% elif appointment.status == 'pending' %}bg-warning
+                        {% elif appointment.status == 'completed' %}bg-info
+                        {% elif appointment.status == 'cancelled' %}bg-danger
+                        {% else %}bg-primary{% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </p>
+                
+                <!-- Status Management Buttons -->
+                <div class="mt-3">
+                    {% if user_type == 'doctor' and appointment.status == 'pending' %}
+                    <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="confirmed">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-check"></i> Confirm
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if user_type == 'doctor' and appointment.status == 'confirmed' %}
+                    <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-info btn-sm">
+                            <i class="fas fa-check-double"></i> Mark Complete
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if appointment.status in 'pending,confirmed' %}
+                    <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="btn btn-danger btn-sm" 
+                                onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No appointments found.</div>
+    </div>
+    {% endfor %}
+</div>
+<a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}

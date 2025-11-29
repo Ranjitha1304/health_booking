@@ -1,0 +1,6 @@
+Django
+Pillow
+PyPDF2
+python-dotenv
+whitenoise
+gunicorn

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Book Appointment</h2>
+        
+        {% if not available_specializations %}
+        <div class="alert alert-warning">
+            <h5>No Doctors Available</h5>
+            <p>There are currently no doctors available for booking. Please check back later.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+        {% else %}
+        <form method="post" id="appointment-form">
+            {% csrf_token %}
+            
+            <!-- Specialization Selection -->
+            <div class="mb-3">
+                <label for="specialization-select" class="form-label">Select Specialization *</label>
+                <select name="specialization" class="form-control" id="specialization-select" required>
+                    <option value="">Choose a specialization...</option>
+                    {% for spec_code, spec_name in available_specializations %}
+                    <option value="{{ spec_code }}">{{ spec_name }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.specialization.errors %}
+                    <div class="text-danger">{{ form.specialization.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Doctor Selection (Initially hidden) -->
+            <div class="mb-3" id="doctor-selection" style="display: none;">
+                <label for="doctor-select" class="form-label">Select Doctor *</label>
+                <select name="doctor" class="form-control" id="doctor-select" required>
+                    <option value="">Select a doctor...</option>
+                </select>
+                <div id="doctor-details" class="mt-2 p-3 bg-light rounded" style="display: none;">
+                    <!-- Doctor details will be shown here -->
+                </div>
+                {% if form.doctor.errors %}
+                    <div class="text-danger">{{ form.doctor.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Appointment Date -->
+            <div class="mb-3">
+                <label for="id_appointment_date" class="form-label">Appointment Date & Time *</label>
+                {{ form.appointment_date }}
+                <div id="date-help" class="form-text" style="display: none;">
+                    <i class="fas fa-info-circle text-warning"></i>
+                    <span id="date-help-text"></span>
+                </div>
+                {% if form.appointment_date.errors %}
+                    <div class="text-danger">{{ form.appointment_date.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Reason -->
+            <div class="mb-3">
+                <label for="id_reason" class="form-label">Reason for Visit *</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}
+                    <div class="text-danger">{{ form.reason.errors }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Book Appointment</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const specializationSelect = document.getElementById('specialization-select');
+    const doctorSelection = document.getElementById('doctor-selection');
+    const doctorSelect = document.getElementById('doctor-select');
+    const doctorDetails = document.getElementById('doctor-details');
+    const appointmentDateInput = document.getElementById('id_appointment_date');
+    const dateHelp = document.getElementById('date-help');
+    const dateHelpText = document.getElementById('date-help-text');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    // Store doctors data and unavailable dates
+    let doctorsData = {};
+    let unavailableDates = [];
+    
+    // Set min and max dates for the date picker
+    function setDateLimits() {
+        const now = new Date();
+        const minDate = now.toISOString().slice(0, 16);
+        
+        const maxDate = new Date(now);
+        maxDate.setDate(now.getDate() + 30);
+        const maxDateString = maxDate.toISOString().slice(0, 16);
+        
+        appointmentDateInput.min = minDate;
+        appointmentDateInput.max = maxDateString;
+    }
+    
+    setDateLimits();
+    
+    // When specialization changes
+    specializationSelect.addEventListener('change', function() {
+        const specialization = this.value;
+        
+        if (specialization) {
+            // Show loading state
+            doctorSelect.innerHTML = '<option value="">Loading doctors...</option>';
+            doctorSelection.style.display = 'block';
+            doctorDetails.style.display = 'none';
+            submitBtn.disabled = true;
+            resetDateField();
+            
+            // Fetch doctors for this specialization
+            fetch(`/appointments/get-doctors/?specialization=${specialization}`)
+                .then(response => response.json())
+                .then(data => {
+                    doctorsData = {};
+                    unavailableDates = [];
+                    doctorSelect.innerHTML = '<option value="">Select a doctor...</option>';
+                    
+                    if (data.doctors.length > 0) {
+                        data.doctors.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.id;
+                            option.textContent = doctor.name;
+                            doctorSelect.appendChild(option);
+                            doctorsData[doctor.id] = doctor;
+                        });
+                    } else {
+                        doctorSelect.innerHTML = '<option value="">No doctors available for this specialization</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching doctors:', error);
+                    doctorSelect.innerHTML = '<option value="">Error loading doctors</option>';
+                });
+        } else {
+            doctorSelection.style.display = 'none';
+            doctorDetails.style.display = 'none';
+            submitBtn.disabled = true;
+            resetDateField();
+        }
+    });
+    
+    // When doctor selection changes
+    doctorSelect.addEventListener('change', function() {
+        const doctorId = this.value;
+        
+        if (doctorId && doctorsData[doctorId]) {
+            const doctor = doctorsData[doctorId];
+            doctorDetails.innerHTML = `
+                <h6>Doctor Details:</h6>
+                <p class="mb-1"><strong>Name:</strong> ${doctor.name}</p>
+                <p class="mb-1"><strong>Specialization:</strong> ${doctor.specialization}</p>
+                <p class="mb-1"><strong>Hospital:</strong> ${doctor.hospital}</p>
+                <p class="mb-0"><strong>Experience:</strong> ${doctor.experience}</p>
+            `;
+            doctorDetails.style.display = 'block';
+            
+            // Fetch unavailable dates for this doctor
+            fetch(`/appointments/get-unavailable-dates/${doctorId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    unavailableDates = data.unavailable_dates || [];
+                    updateDateHelpText();
+                })
+                .catch(error => {
+                    console.error('Error fetching unavailable dates:', error);
+                    unavailableDates = [];
+                });
+            
+            submitBtn.disabled = false;
+        } else {
+            doctorDetails.style.display = 'none';
+            submitBtn.disabled = true;
+            resetDateField();
+        }
+    });
+    
+    // When date changes, validate against unavailable dates
+    appointmentDateInput.addEventListener('change', function() {
+        validateSelectedDate();
+    });
+    
+    function validateSelectedDate() {
+        const selectedDate = appointmentDateInput.value;
+        if (!selectedDate) return;
+        
+        const selectedDateObj = new Date(selectedDate);
+        const selectedDateString = selectedDateObj.toISOString().split('T')[0];
+        
+        if (unavailableDates.includes(selectedDateString)) {
+            dateHelpText.innerHTML = `<strong>Doctor is not available on this date.</strong> Please choose a different date.`;
+            dateHelp.style.display = 'block';
+            dateHelp.className = 'form-text text-danger';
+            submitBtn.disabled = true;
+            appointmentDateInput.classList.add('is-invalid');
+        } else {
+            dateHelp.style.display = 'none';
+            appointmentDateInput.classList.remove('is-invalid');
+            // Only enable if doctor is selected
+            submitBtn.disabled = !doctorSelect.value;
+        }
+    }
+    
+    function updateDateHelpText() {
+        if (unavailableDates.length > 0) {
+            dateHelpText.innerHTML = `Doctor is unavailable on: <strong>${unavailableDates.join(', ')}</strong>`;
+            dateHelp.style.display = 'block';
+            dateHelp.className = 'form-text text-info';
+        } else {
+            dateHelp.style.display = 'none';
+        }
+    }
+    
+    function resetDateField() {
+        appointmentDateInput.value = '';
+        dateHelp.style.display = 'none';
+        appointmentDateInput.classList.remove('is-invalid');
+        unavailableDates = [];
+    }
+    
+    // Form validation
+    const form = document.getElementById('appointment-form');
+    form.addEventListener('submit', function(e) {
+        const specialization = specializationSelect.value;
+        const doctor = doctorSelect.value;
+        const appointmentDate = appointmentDateInput.value;
+        
+        if (!specialization || !doctor || !appointmentDate) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Final validation for unavailable dates
+        const selectedDateObj = new Date(appointmentDate);
+        const selectedDateString = selectedDateObj.toISOString().split('T')[0];
+        
+        if (unavailableDates.includes(selectedDateString)) {
+            e.preventDefault();
+            alert('The selected date is not available. Please choose a different date.');
+            return;
+        }
+    });
+});
+</script>
+
+<style>
+.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+</style>
+{% endblock %}

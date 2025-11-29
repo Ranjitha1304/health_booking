@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>
+            <i class="fas fa-calendar-times"></i> Manage Unavailable Dates
+        </h2>
+        <p class="text-muted">Mark dates when you are not available for appointments.</p>
+
+        <!-- Add Unavailability Form -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-warning">
+                <h5 class="m-0">Mark New Unavailable Date</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unavailable Date *</label>
+                            {{ form.unavailable_date }}
+                            {% if form.unavailable_date.errors %}
+                                <div class="text-danger">{{ form.unavailable_date.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Select the date you want to mark as unavailable</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Reason (Optional)</label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger">{{ form.reason.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">e.g., Vacation, Conference, Sick Leave</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-ban"></i> Mark as Unavailable
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Existing Unavailability List -->
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="m-0">Your Unavailable Dates</h5>
+            </div>
+            <div class="card-body">
+                {% if unavailability_list %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reason</th>
+                                    <th>Added On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in unavailability_list %}
+                                <tr>
+                                    <td>{{ entry.unavailable_date }}</td>
+                                    <td>{{ entry.reason|default:"Not specified" }}</td>
+                                    <td>{{ entry.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <form method="post" action="{% url 'delete_unavailability' entry.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                    onclick="return confirm('Are you sure you want to remove this unavailability?')">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        You haven't marked any dates as unavailable. All dates are available for appointments.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Upload Medical Report</h2>
+        
+        {% if not available_categories %}
+        <div class="alert alert-warning">
+            <h5>No Doctors Available</h5>
+            <p>There are currently no doctors available to share reports with. Please check back later.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+        {% else %}
+        <form method="post" enctype="multipart/form-data" id="report-form">
+            {% csrf_token %}
+            
+            <!-- Report Title -->
+            <div class="mb-3">
+                <label for="id_title" class="form-label">Report Title *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Report Description -->
+            <div class="mb-3">
+                <label for="id_description" class="form-label">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-danger">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Category Selection -->
+            <div class="mb-3">
+                <label for="category-select" class="form-label">Report Category *</label>
+                <select name="category" class="form-control" id="category-select" required>
+                    <option value="">Choose a category...</option>
+                    {% for cat_code, cat_name in available_categories %}
+                    <option value="{{ cat_code }}">{{ cat_name }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.category.errors %}
+                    <div class="text-danger">{{ form.category.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Select the medical specialty relevant to this report</small>
+            </div>
+
+            <!-- Doctor Selection (Optional) -->
+            <div class="mb-3" id="doctor-selection" style="display: none;">
+                <label for="doctor-select" class="form-label">Share with Doctor</label>
+                <select name="shared_with" class="form-control" id="doctor-select">
+                    <option value="">Select a doctor to share with...</option>
+                </select>
+                <div id="doctor-details" class="mt-2 p-3 bg-light rounded" style="display: none;">
+                    <!-- Doctor details will be shown here -->
+                </div>
+                {% if form.shared_with.errors %}
+                    <div class="text-danger">{{ form.shared_with.errors }}</div>
+                {% endif %}
+                <small class="text-muted"> share this report with a specific doctor for review</small>
+            </div>
+
+            <!-- Report File -->
+            <div class="mb-3">
+                <label for="id_report_file" class="form-label">Report File *</label>
+                {{ form.report_file }}
+                {% if form.report_file.errors %}
+                    <div class="text-danger">{{ form.report_file.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Supported formats: PDF, JPG, PNG (Max: 10MB)</small>
+            </div>
+
+            <button type="submit" class="btn btn-success">Upload Report</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category-select');
+    const doctorSelection = document.getElementById('doctor-selection');
+    const doctorSelect = document.getElementById('doctor-select');
+    const doctorDetails = document.getElementById('doctor-details');
+    
+    // Store doctors data
+    let doctorsData = {};
+    
+    // When category changes
+    categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        
+        if (category) {
+            // Show loading state
+            doctorSelect.innerHTML = '<option value="">Loading doctors...</option>';
+            doctorSelection.style.display = 'block';
+            doctorDetails.style.display = 'none';
+            
+            // Fetch doctors for this category
+            fetch(`/reports/get-doctors/?category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    doctorsData = {};
+                    doctorSelect.innerHTML = '<option value="">Select a doctor to share with...</option>';
+                    
+                    if (data.doctors.length > 0) {
+                        data.doctors.forEach(doctor => {
+                            const option = document.createElement('option');
+                            option.value = doctor.id;
+                            option.textContent = doctor.name;
+                            doctorSelect.appendChild(option);
+                            doctorsData[doctor.id] = doctor;
+                        });
+                    } else {
+                        doctorSelect.innerHTML = '<option value="">No doctors available for this category</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching doctors:', error);
+                    doctorSelect.innerHTML = '<option value="">Error loading doctors</option>';
+                });
+        } else {
+            doctorSelection.style.display = 'none';
+            doctorDetails.style.display = 'none';
+        }
+    });
+    
+    // When doctor selection changes
+    doctorSelect.addEventListener('change', function() {
+        const doctorId = this.value;
+        
+        if (doctorId && doctorsData[doctorId]) {
+            const doctor = doctorsData[doctorId];
+            doctorDetails.innerHTML = `
+                <h6>Doctor Details:</h6>
+                <p class="mb-1"><strong>Name:</strong> ${doctor.name}</p>
+                <p class="mb-1"><strong>Specialization:</strong> ${doctor.specialization}</p>
+                <p class="mb-1"><strong>Hospital:</strong> ${doctor.hospital}</p>
+                <p class="mb-0"><strong>Experience:</strong> ${doctor.experience}</p>
+            `;
+            doctorDetails.style.display = 'block';
+        } else {
+            doctorDetails.style.display = 'none';
+        }
+    });
+    
+    // Form validation
+    const form = document.getElementById('report-form');
+    form.addEventListener('submit', function(e) {
+        const category = categorySelect.value;
+        const reportFile = document.getElementById('id_report_file').value;
+        
+        if (!category || !reportFile) {
+            e.preventDefault();
+            alert('Please fill in all required fields (Category and Report File).');
+        }
+    });
+});
+</script>
+{% endblock %}

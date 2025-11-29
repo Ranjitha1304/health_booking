@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ report.title }}</h2>
+            <a href="{% url 'report_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+
+        <!-- Report Information Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0"><i class="fas fa-file-medical"></i> Report Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Title:</strong> {{ report.title }}</p>
+                        <p><strong>Category:</strong> {{ report.get_category_display }}</p>
+                        <p><strong>Uploaded:</strong> {{ report.uploaded_at|date:"F d, Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Patient:</strong> {{ report.patient.get_full_name }}</p>
+                        {% if report.shared_with %}
+                        <p><strong>Shared with:</strong> Dr. {{ report.shared_with.get_full_name }}</p>
+                        {% endif %}
+                        {% if report.description %}
+                        <p><strong>Description:</strong> {{ report.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Report File -->
+                <div class="mt-3">
+                    <a href="{{ report.report_file.url }}" class="btn btn-outline-primary" target="_blank">
+                        <i class="fas fa-download"></i> Download Original Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        {% if report.analysis_results %}
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="m-0"><i class="fas fa-chart-bar"></i> Automated Analysis</h5>
+            </div>
+            <div class="card-body">
+                <pre style="white-space: pre-wrap; font-family: inherit;">{{ report.analysis_results }}</pre>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Doctor Response Section -->
+        {% if existing_response %}
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="m-0">
+                    <i class="fas fa-user-md"></i> Doctor's Response 
+                    <small class="float-end">by Dr. {{ existing_response.doctor.get_full_name }}</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Diagnosis & Findings:</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ existing_response.diagnosis|linebreaks }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Prescription & Medications:</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ existing_response.prescription|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Recommendations & Follow-up:</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ existing_response.recommendations|linebreaks }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Medical Advice & Precautions:</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ existing_response.advice|linebreaks|default:"No specific advice provided." }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 text-muted">
+                    <small>
+                        Response provided on: {{ existing_response.created_at|date:"F d, Y H:i" }}
+                        {% if existing_response.updated_at != existing_response.created_at %}
+                        <br>Last updated: {{ existing_response.updated_at|date:"F d, Y H:i" }}
+                        {% endif %}
+                    </small>
+                </div>
+
+                <!-- Edit Response Button (for doctors) -->
+                {% if user_type == 'doctor' and existing_response.doctor == user %}
+                <div class="mt-3">
+                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editResponseModal">
+                        <i class="fas fa-edit"></i> Edit Response
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif can_respond and user_type == 'doctor' %}
+        <!-- Response Form for Doctors -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="m-0"><i class="fas fa-comment-medical"></i> Provide Medical Response</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'add_doctor_response' report.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Diagnosis & Findings *</label>
+                            {{ response_form.diagnosis }}
+                            {% if response_form.diagnosis.errors %}
+                                <div class="text-danger">{{ response_form.diagnosis.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prescription & Medications *</label>
+                            {{ response_form.prescription }}
+                            {% if response_form.prescription.errors %}
+                                <div class="text-danger">{{ response_form.prescription.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Recommendations & Follow-up *</label>
+                            {{ response_form.recommendations }}
+                            {% if response_form.recommendations.errors %}
+                                <div class="text-danger">{{ response_form.recommendations.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Medical Advice & Precautions</label>
+                            {{ response_form.advice }}
+                            {% if response_form.advice.errors %}
+                                <div class="text-danger">{{ response_form.advice.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Your response will be immediately visible to the patient. Please ensure all information is accurate.
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i> Send Response to Patient
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% elif user_type == 'patient' and not existing_response %}
+        <!-- Message for patients waiting for response -->
+        <div class="alert alert-info">
+            <h5><i class="fas fa-clock"></i> Awaiting Doctor's Response</h5>
+            <p class="mb-0">
+                Your report has been shared with Dr. {{ report.shared_with.get_full_name }}. 
+                They will review your report and provide their medical response soon.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Response Modal -->
+{% if existing_response and user_type == 'doctor' and existing_response.doctor == user %}
+<div class="modal fade" id="editResponseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Edit Your Response</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'edit_doctor_response' report.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Diagnosis & Findings *</label>
+                            <textarea name="diagnosis" class="form-control" rows="4" required>{{ existing_response.diagnosis }}</textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prescription & Medications *</label>
+                            <textarea name="prescription" class="form-control" rows="4" required>{{ existing_response.prescription }}</textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Recommendations & Follow-up *</label>
+                            <textarea name="recommendations" class="form-control" rows="4" required>{{ existing_response.recommendations }}</textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Medical Advice & Precautions</label>
+                            <textarea name="advice" class="form-control" rows="4">{{ existing_response.advice }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Update Response</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
