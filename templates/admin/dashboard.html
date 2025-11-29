@@ -109,39 +109,8 @@
         </div>
     </div>
 
-    <!-- Recent Users -->
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow">
-            <div class="card-header bg-info text-white">
-                <h6 class="m-0 font-weight-bold">
-                    <i class="fas fa-users"></i> Recent Users
-                </h6>
-            </div>
-            <div class="card-body">
-                {% if recent_users %}
-                    <div class="list-group">
-                        {% for user in recent_users %}
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ user.username }}</h6>
-                                <small>{{ user.date_joined|timesince }} ago</small>
-                            </div>
-                            <p class="mb-1">{{ user.get_full_name }}</p>
-                            <small class="text-muted">
-                                Type: {{ user.profile.get_user_type_display }} 
-                                {% if user.profile.user_type == 'doctor' %}
-                                - Status: {{ user.profile.get_status_display }}
-                                {% endif %}
-                            </small>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-muted">No users found.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+
+    
 </div>
 
 <div class="row">
