@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgres://devops_user:devops_password@db:5432/healthcare_dev
+      - SECRET_KEY=your-dev-secret-key-change-in-production
+    depends_on:
+      - db
+    env_file:
+      - .env.dev
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=healthcare_dev
+      - POSTGRES_USER=devops_user
+      - POSTGRES_PASSWORD=devops_password
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

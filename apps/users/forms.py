@@ -18,6 +18,13 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name')
     
+    def clean_username(self):
+        """Normalize username to lowercase to make it case-insensitive"""
+        username = self.cleaned_data.get('username')
+        if username:
+            username = username.lower()
+        return username
+    
     def clean(self):
         cleaned_data = super().clean()
         user_type = cleaned_data.get('user_type')
@@ -42,6 +49,8 @@ class CustomUserCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        # Ensure username is saved in lowercase
+        user.username = self.cleaned_data['username'].lower()
         
         if commit:
             user.save()

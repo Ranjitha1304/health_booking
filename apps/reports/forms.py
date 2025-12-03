@@ -55,19 +55,30 @@ class MedicalReportForm(forms.ModelForm):
                 pass
 
 class DoctorResponseForm(forms.ModelForm):
+    prescription = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 6, 
+            'class': 'form-control prescription-input',
+            'placeholder': '''Enter prescription details. For better PDF formatting:
+- One medication per line
+- Use format: Medication Name | Dosage | Frequency | Duration
+Example:
+Paracetamol | 500mg | Once daily after meals | 5 days
+Amoxicillin | 250mg | Every 8 hours | 7 days
+OR
+Simply list medications with details in paragraphs'''
+        }),
+        label='Prescription & Medications'
+    )
+    
     class Meta:
         model = DoctorResponse
         fields = ['diagnosis', 'prescription', 'recommendations', 'advice']
         widgets = {
             'diagnosis': forms.Textarea(attrs={
-                'rows': 4, 
-                'class': 'form-control', 
-                'placeholder': 'Enter your diagnosis and medical findings...'
-            }),
-            'prescription': forms.Textarea(attrs={
                 'rows': 5, 
                 'class': 'form-control', 
-                'placeholder': 'Enter prescription details, medications, dosage, and instructions...'
+                'placeholder': 'Enter detailed diagnosis and medical findings...'
             }),
             'recommendations': forms.Textarea(attrs={
                 'rows': 4, 
@@ -82,7 +93,11 @@ class DoctorResponseForm(forms.ModelForm):
         }
         labels = {
             'diagnosis': 'Diagnosis & Findings',
-            'prescription': 'Prescription & Medications',
             'recommendations': 'Recommendations & Follow-up',
             'advice': 'Medical Advice & Precautions',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add help text
+        # self.fields['prescription'].help_text = 'Tip: Use pipe-separated format (|) for better PDF table formatting'

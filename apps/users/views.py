@@ -24,20 +24,34 @@ def register(request):
 
 def custom_login(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            
+        # Get username and password from POST data
+        username = request.POST.get('username', '').lower()  # Normalize to lowercase
+        password = request.POST.get('password', '')
+        
+        # Try to authenticate the user
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
             # Check if user is a doctor pending approval
             if hasattr(user, 'profile') and user.profile.user_type == 'doctor' and user.profile.status == 'pending':
                 messages.error(request, 'Your account is pending admin approval. Please wait for approval.')
+                form = AuthenticationForm()
                 return render(request, 'registration/login.html', {'form': form})
             
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name}!')
             return redirect('dashboard')
         else:
-            messages.error(request, 'Invalid username or password.')
+            # Try with original case for backward compatibility
+            original_username = request.POST.get('username', '')
+            user = authenticate(request, username=original_username, password=password)
+            
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.first_name}!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Invalid username or password.')
     else:
         form = AuthenticationForm()
     

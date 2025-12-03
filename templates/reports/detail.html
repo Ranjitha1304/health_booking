@@ -56,12 +56,29 @@
 
         <!-- Doctor Response Section -->
         {% if existing_response %}
+        <!-- PDF Download Notification -->
+        {% if user_type == 'patient' %}
+        <div class="alert alert-success d-flex align-items-center mb-4">
+            <i class="fas fa-file-pdf fa-2x me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">Your medical report is ready for download!</h5>
+                <p class="mb-0">You can download a professional PDF version of your complete medical consultation including diagnosis, prescription, and recommendations.</p>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card shadow mb-4">
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h5 class="m-0">
                     <i class="fas fa-user-md"></i> Doctor's Response 
-                    <small class="float-end">by Dr. {{ existing_response.doctor.get_full_name }}</small>
+                    <small class="ms-2">by Dr. {{ existing_response.doctor.get_full_name }}</small>
                 </h5>
+                <!-- PDF Download Button -->
+                {% if user_type == 'patient' %}
+                <a href="{% url 'download_response_pdf' report.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-file-pdf"></i> Download PDF Report
+                </a>
+                {% endif %}
             </div>
             <div class="card-body">
                 <div class="row">
@@ -103,6 +120,15 @@
                     </small>
                 </div>
 
+                <!-- Prescription tip for doctors when editing their own response -->
+                {% if user_type == 'doctor' and existing_response.doctor == user %}
+                <div class="prescription-format-hint mt-2">
+                    <small><i class="fas fa-lightbulb"></i> <strong>Tip for better PDF formatting:</strong> Use pipe-separated format for medications:</small><br>
+                    <small><code>Medication Name | Dosage | Frequency | Duration</code></small><br>
+                    <small>Example: <code>Paracetamol | 500mg | Once daily after meals | 5 days</code></small>
+                </div>
+                {% endif %}
+
                 <!-- Edit Response Button (for doctors) -->
                 {% if user_type == 'doctor' and existing_response.doctor == user %}
                 <div class="mt-3">
@@ -113,7 +139,43 @@
                 {% endif %}
             </div>
         </div>
-        {% elif can_respond and user_type == 'doctor' %}
+
+        <!-- PDF Download Section - More Prominent (for patients only) -->
+        {% if user_type == 'patient' %}
+        <div class="card shadow mb-4 border-primary medical-report-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="m-0"><i class="fas fa-download"></i> Download Complete Medical Report</h5>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">
+                    <i class="fas fa-file-medical-alt fa-2x text-primary mb-3"></i><br>
+                    Get a professional PDF version of your medical consultation including:
+                </p>
+                <div class="row text-start mb-4">
+                    <div class="col-md-6">
+                        <p><i class="fas fa-check-circle text-success"></i> Complete diagnosis & findings</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Prescription details</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Follow-up recommendations</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><i class="fas fa-check-circle text-success"></i> Doctor's professional information</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Important medical notes</p>
+                        <p><i class="fas fa-check-circle text-success"></i> Patient & doctor details</p>
+                    </div>
+                </div>
+                <a href="{% url 'download_response_pdf' report.id %}" class="btn btn-pdf btn-lg">
+                    <i class="fas fa-file-pdf"></i> Download Professional PDF Report
+                </a>
+                <p class="text-muted mt-3">
+                    <small><i class="fas fa-info-circle"></i> This PDF includes all medical details in a professionally formatted document suitable for medical records.</small>
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% endif %}  <!-- Close existing_response block -->
+
+        {% if can_respond and user_type == 'doctor' %}
         <!-- Response Form for Doctors -->
         <div class="card shadow mb-4">
             <div class="card-header bg-warning text-dark">
@@ -135,6 +197,12 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Prescription & Medications *</label>
                             {{ response_form.prescription }}
+                            <!-- Prescription tip for doctors when creating a new response -->
+                            <div class="prescription-format-hint mt-2">
+                                <small><i class="fas fa-lightbulb"></i> <strong>Tip for better PDF formatting:</strong> Use pipe-separated format for medications:</small><br>
+                                <small><code>Medication Name | Dosage | Frequency | Duration</code></small><br>
+                                <small>Example: <code>Paracetamol | 500mg | Once daily after meals | 5 days</code></small>
+                            </div>
                             {% if response_form.prescription.errors %}
                                 <div class="text-danger">{{ response_form.prescription.errors }}</div>
                             {% endif %}
@@ -170,7 +238,9 @@
                 </form>
             </div>
         </div>
-        {% elif user_type == 'patient' and not existing_response %}
+        {% endif %}
+
+        {% if user_type == 'patient' and not existing_response %}
         <!-- Message for patients waiting for response -->
         <div class="alert alert-info">
             <h5><i class="fas fa-clock"></i> Awaiting Doctor's Response</h5>
@@ -180,6 +250,7 @@
             </p>
         </div>
         {% endif %}
+
     </div>
 </div>
 
@@ -215,6 +286,12 @@
                             <textarea name="advice" class="form-control" rows="4">{{ existing_response.advice }}</textarea>
                         </div>
                     </div>
+                    <!-- Prescription tip in edit modal -->
+                    <div class="prescription-format-hint mt-2">
+                        <small><i class="fas fa-lightbulb"></i> <strong>Tip for better PDF formatting:</strong> Use pipe-separated format for medications:</small><br>
+                        <small><code>Medication Name | Dosage | Frequency | Duration</code></small><br>
+                        <small>Example: <code>Paracetamol | 500mg | Once daily after meals | 5 days</code></small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -225,4 +302,98 @@
     </div>
 </div>
 {% endif %}
+
+<style>
+.prescription-input {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.prescription-format-hint {
+    font-size: 12px;
+    color: #666;
+    background-color: #f8f9fa;
+    border-left: 3px solid #0d6efd;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.prescription-format-hint code {
+    background-color: #e9ecef;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+.btn-pdf {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-pdf:hover {
+    background: linear-gradient(135deg, #283593, #1a237e);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 35, 126, 0.3);
+}
+
+.btn-pdf:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.btn-pdf:hover:before {
+    left: 100%;
+}
+
+.medical-report-card {
+    border-left: 4px solid #1a237e;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.medical-report-card:hover {
+    box-shadow: 0 10px 30px rgba(26, 35, 126, 0.15);
+    transform: translateY(-3px);
+}
+
+.medical-report-card .card-header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+}
+
+.pdf-features-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.pdf-features-list li {
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+}
+
+.pdf-features-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #1a237e;
+    font-weight: bold;
+}
+</style>
+
 {% endblock %}

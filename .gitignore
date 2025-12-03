@@ -1,0 +1,51 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+.env.prod
+.env.dev
+clean-env.prod
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+docker-compose.override.yml
+healthcare.zip
+
+# Media and static files (if using S3)
+/media/
+/static/
+!static/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test files
+test_*.py
+*_test.py
+
+# Backup files
+*.bak
+*.backup
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl

@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponse
 from .models import MedicalReport, DoctorResponse
 from .forms import MedicalReportForm, DoctorResponseForm
-from django.http import JsonResponse
+from .pdf_utils import create_medical_response_pdf, generate_pdf_filename
 from apps.users.models import Profile
 
 
@@ -88,7 +89,12 @@ def report_detail(request, report_id):
     
     # Check if there's already a response
     response = getattr(report, 'doctor_response', None)
-    response_form = DoctorResponseForm() if can_respond else None
+    
+    # Only create response_form if doctor can respond AND user is a doctor
+    if can_respond and user_type == 'doctor':
+        response_form = DoctorResponseForm()
+    else:
+        response_form = None
     
     return render(request, 'reports/detail.html', {
         'report': report,
@@ -190,5 +196,62 @@ def get_doctors_by_category(request):
     
     return JsonResponse({'doctors': []})
 
-
-
+@login_required
+def download_response_pdf(request, report_id):
+    """Download doctor's response as a professional PDF"""
+    # Get the report
+    if request.user.is_staff:
+        report = get_object_or_404(MedicalReport, id=report_id)
+    else:
+        # For patients, they can only download their own reports
+        report = get_object_or_404(MedicalReport, id=report_id, patient=request.user)
+    
+    # Check if there's a response
+    if not hasattr(report, 'doctor_response'):
+        messages.error(request, 'No doctor response available for this report.')
+        return redirect('report_detail', report_id=report_id)
+    
+    response = report.doctor_response
+    
+    # Get additional information for the PDF - handle missing Profile gracefully
+    try:
+        patient_profile = Profile.objects.get(user=report.patient)
+        patient_info = {
+            'full_name': report.patient.get_full_name() or report.patient.username,
+            'contact': patient_profile.phone if patient_profile.phone else 'Not specified',
+            'address': patient_profile.address if patient_profile.address else 'Not specified',
+        }
+    except Profile.DoesNotExist:
+        patient_info = {
+            'full_name': report.patient.get_full_name() or report.patient.username,
+            'contact': 'Not specified',
+            'address': 'Not specified',
+        }
+    
+    try:
+        doctor_profile = Profile.objects.get(user=response.doctor)
+        doctor_info = {
+            'full_name': response.doctor.get_full_name() or response.doctor.username,
+            'specialization': doctor_profile.get_specialization_display() if doctor_profile.specialization else 'Consultant',
+            'license': doctor_profile.license_number if doctor_profile.license_number else f'MED-{response.doctor.id:05d}',
+            'hospital': doctor_profile.hospital_name if doctor_profile.hospital_name else 'Not specified',
+            'experience': f"{doctor_profile.experience} years" if doctor_profile.experience else 'Not specified',
+        }
+    except Profile.DoesNotExist:
+        doctor_info = {
+            'full_name': response.doctor.get_full_name() or response.doctor.username,
+            'specialization': 'Consultant',
+            'license': f'MED-{response.doctor.id:05d}',
+            'hospital': 'Not specified',
+            'experience': 'Not specified',
+        }
+    
+    # Generate PDF
+    pdf_content = create_medical_response_pdf(report, response, patient_info, doctor_info)
+    
+    # Create response
+    response_pdf = HttpResponse(pdf_content, content_type='application/pdf')
+    filename = generate_pdf_filename(report, response)
+    response_pdf['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response_pdf
