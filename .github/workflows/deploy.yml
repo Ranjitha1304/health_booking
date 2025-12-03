@@ -1,0 +1,44 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "🚀 Starting deployment..."
+          cd /home/ubuntu/healthcare-app
+          
+          echo "📦 Pulling latest code..."
+          git pull origin main
+          
+          echo "🐳 Stopping old containers..."
+          docker-compose -f docker-compose.prod.yml down
+          
+          echo "🏗️ Building new containers..."
+          docker-compose -f docker-compose.prod.yml build --no-cache
+          
+          echo "🚀 Starting containers..."
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          echo "🗄️ Running migrations..."
+          docker-compose -f docker-compose.prod.yml exec -T web python manage.py migrate --noinput
+          
+          echo "✨ Cleaning up old images..."
+          docker image prune -f
+          
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Website is live at: http://${{ secrets.EC2_HOST }}"
