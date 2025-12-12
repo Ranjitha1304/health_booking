@@ -35,7 +35,7 @@ else:
     }
 
 # Allowed hosts for Docker
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0', 'https://health-booking-xe3y.onrender.com').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 # =================== END DOCKER CONFIGURATION ===================
 
