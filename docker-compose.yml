@@ -3,13 +3,13 @@ version: '3.8'
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn --bind 0.0.0.0:8000 healthcare.wsgi:application
     volumes:
       - .:/app
       - static_volume:/app/static
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       - DEBUG=1
       - DATABASE_URL=postgres://devops_user:devops_password@db:5432/healthcare_dev
@@ -27,8 +27,18 @@ services:
       - POSTGRES_DB=healthcare_dev
       - POSTGRES_USER=devops_user
       - POSTGRES_PASSWORD=devops_password
+
+  nginx:
+    image: nginx:1.21
     ports:
-      - "5432:5432"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
