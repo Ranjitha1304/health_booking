@@ -40,7 +40,7 @@
                                 <form method="post" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="doctor_id" value="{{ profile.id }}">
-                                    <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">
+                                    <button style="margin-bottom: 3px" type="submit" name="action" value="approve" class="btn btn-success btn-sm">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                     <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
@@ -61,7 +61,7 @@
     </div>
 </div>
 
-<div class="row mt-4">
+<div class="row m-4">
     <div class="col-md-6">
         <div class="card shadow">
             <div class="card-header bg-success text-white">

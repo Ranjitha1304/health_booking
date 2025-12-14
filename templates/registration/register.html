@@ -2,171 +2,678 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <h2>Register</h2>
-        <form method="post">
-            {% csrf_token %}
-            
-            <!-- Basic User Fields -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger">{{ form.username.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger">{{ form.email.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">First Name</label>
-                        {{ form.first_name }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Last Name</label>
-                        {{ form.last_name }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="text-danger">{{ form.password1.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Confirm Password</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="text-danger">{{ form.password2.errors }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- User Type -->
-            <div class="mb-3">
-                <label class="form-label">Register As</label>
-                <div>
-                    {% for choice in form.user_type %}
-                        <div class="form-check form-check-inline">
-                            {{ choice.tag }}
-                            <label class="form-check-label" for="{{ choice.id_for_label }}">
-                                {{ choice.choice_label }}
-                            </label>
+    <div class="col-12 col-xl-12 col-xxl-10">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="row g-0">
+                <!-- Left Side - Form -->
+                <div class="col-lg-8 col-xl-7 col-xxl-7">
+                    <div class="card-body p-4 p-lg-5 p-xl-5">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold text-primary mb-2">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </h2>
+                            <p class="text-muted mb-4">Join our healthcare community today</p>
                         </div>
-                    {% endfor %}
+
+                        <form method="post" id="registration-form">
+                            {% csrf_token %}
+                            
+                            <!-- Basic Information Section -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-user-circle me-2"></i>Basic Information
+                                </h5>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="id_username" class="form-label fw-bold text-dark mb-2">
+                                                <i class="fas fa-user me-1 text-primary"></i> Username
+                                            </label>
+                                            {{ form.username }}
+                                            {% if form.username.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.username.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="id_email" class="form-label fw-bold text-dark mb-2">
+                                                <i class="fas fa-envelope me-1 text-primary"></i> Email
+                                            </label>
+                                            {{ form.email }}
+                                            {% if form.email.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.email.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="id_first_name" class="form-label fw-bold text-dark mb-2">
+                                                <i class="fas fa-signature me-1 text-primary"></i> First Name
+                                            </label>
+                                            {{ form.first_name }}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="id_last_name" class="form-label fw-bold text-dark mb-2">
+                                                <i class="fas fa-signature me-1 text-primary"></i> Last Name
+                                            </label>
+                                            {{ form.last_name }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password Section -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-lock me-2"></i>Security
+                                </h5>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group position-relative">
+                                            <label for="id_password1" class="form-label fw-bold text-dark mb-2">
+                                                Password
+                                            </label>
+                                            <div class="input-group">
+                                                {{ form.password1 }}
+                                            </div>
+                                            {% if form.password1.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.password1.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group position-relative">
+                                            <label for="id_password2" class="form-label fw-bold text-dark mb-2">
+                                                </i> Confirm Password
+                                            </label>
+                                            <div class="input-group">
+                                                {{ form.password2 }}
+                                            </div>
+                                            {% if form.password2.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {% for error in form.password2.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Type Selection -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-users me-2"></i>Register As
+                                </h5>
+                                
+                                <div class="d-flex justify-content-center gap-4 mb-3">
+                                    {% for choice in form.user_type %}
+                                        <div class="form-check-card">
+                                            <input type="radio" 
+                                                   name="user_type" 
+                                                   value="{{ choice.data.value }}" 
+                                                   id="{{ choice.id_for_label }}" 
+                                                   class="form-check-input visually-hidden"
+                                                   {% if choice.data.selected %}checked{% endif %}>
+                                            <label for="{{ choice.id_for_label }}" class="form-check-label-card">
+                                                <div class="card-choice">
+                                                    {% if choice.data.value == 'patient' %}
+                                                        <i class="fas fa-user-injured fa-2x mb-2 text-primary"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-user-md fa-2x mb-2 text-primary"></i>
+                                                    {% endif %}
+                                                    <span class="d-block fw-bold text-dark">{{ choice.choice_label }}</span>
+                                                    <small class="text-muted">
+                                                        {% if choice.data.value == 'patient' %}
+                                                            Book appointments, Upload reports, Get medical help
+                                                        {% else %}
+                                                            Provide consultations, Review reports, Help patients
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-phone me-2"></i>Contact Information
+                                </h5>
+                                
+                                <div class="form-group">
+                                    <label for="id_phone" class="form-label fw-bold text-dark mb-2">
+                                        <i class="fas fa-mobile-alt me-1 text-primary"></i> Phone Number
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.phone.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Doctor Specific Fields -->
+                            <div id="doctor-fields" class="mb-4" style="display: none;">
+                                <div class="card border-primary border-2 bg-light-subtle">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-stethoscope me-2"></i>Doctor Information
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="id_specialization" class="form-label fw-bold text-dark mb-2">
+                                                        <i class="fas fa-user-md me-1 text-primary"></i> Specialization
+                                                    </label>
+                                                    {{ form.specialization }}
+                                                    {% if form.specialization.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {% for error in form.specialization.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="id_license_number" class="form-label fw-bold text-dark mb-2">
+                                                        <i class="fas fa-id-card me-1 text-primary"></i> License Number
+                                                    </label>
+                                                    {{ form.license_number }}
+                                                    {% if form.license_number.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {% for error in form.license_number.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="id_experience" class="form-label fw-bold text-dark mb-2">
+                                                        <i class="fas fa-briefcase me-1 text-primary"></i> Years of Experience
+                                                    </label>
+                                                    {{ form.experience }}
+                                                    {% if form.experience.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {% for error in form.experience.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="id_hospital_name" class="form-label fw-bold text-dark mb-2">
+                                                        <i class="fas fa-hospital me-1 text-primary"></i> Hospital Name
+                                                    </label>
+                                                    {{ form.hospital_name }}
+                                                    {% if form.hospital_name.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {% for error in form.hospital_name.errors %}
+                                                                {{ error }}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg py-3">
+                                    <i class="fas fa-user-plus me-2"></i> Create Account
+                                </button>
+                                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg py-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Already have an account? Login
+                                </a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right Side - Info/Illustration -->
+                <div class="col-lg-4 col-xl-5 col-xxl-5 bg-primary text-white d-none d-lg-flex align-items-center">
+                    <div class="card-body p-4 p-xl-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-heartbeat fa-5x mb-4"></i>
+                            <h3 class="fw-bold mb-3">Welcome to Healthcare Pro</h3>
+                            <p class="mb-4">Join thousands of patients and doctors in our secure healthcare platform</p>
+                        </div>
+                        
+                        <div class="text-start">
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-check-circle me-2"></i>Benefits:
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check me-2"></i> Secure medical records
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check me-2"></i> Instant appointments
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check me-2"></i> Doctor consultations
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check me-2"></i> Prescription management
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check me-2"></i> 24/7 support
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-5">
+                            <div class="d-flex justify-content-center">
+                                <div class="px-3">
+                                    <h4 class="fw-bold">1K+</h4>
+                                    <small>Doctors</small>
+                                </div>
+                                <div class="border-start border-end px-3">
+                                    <h4 class="fw-bold">10K+</h4>
+                                    <small>Patients</small>
+                                </div>
+                                <div class="px-3">
+                                    <h4 class="fw-bold">99%</h4>
+                                    <small>Satisfaction</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Phone</label>
-                {{ form.phone }}
-            </div>
-
-            <!-- Doctor Specific Fields (Initially Hidden) -->
-            <div id="doctor-fields" style="display: none;">
-                <h5>Doctor Information</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Specialization</label>
-                            {{ form.specialization }}
-                            {% if form.specialization.errors %}
-                                <div class="text-danger">{{ form.specialization.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">License Number</label>
-                            {{ form.license_number }}
-                            {% if form.license_number.errors %}
-                                <div class="text-danger">{{ form.license_number.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Years of Experience</label>
-                            {{ form.experience }}
-                            {% if form.experience.errors %}
-                                <div class="text-danger">{{ form.experience.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Hospital Name</label>
-                            {{ form.hospital_name }}
-                            {% if form.hospital_name.errors %}
-                                <div class="text-danger">{{ form.hospital_name.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Register</button>
-            <a href="{% url 'login' %}" class="btn btn-secondary">Already have an account? Login</a>
-        </form>
+        </div>
     </div>
 </div>
 
+<style>
+/* Enhanced Label Styling */
+.form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2c3e50 !important;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-label i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Improved Form Controls */
+.form-control, .form-select {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    background-color: #fff;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    background-color: #fff;
+}
+
+/* Required Field Indicator */
+.form-label.required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* Form Text (Helper Text) */
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d !important;
+    margin-top: 0.25rem;
+}
+
+.form-text i {
+    color: #667eea;
+}
+
+/* Card Styles */
+.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.card {
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom Radio Cards */
+.form-check-card {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-check-input:checked + .form-check-label-card .card-choice {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    transform: scale(1.05);
+}
+
+.form-check-label-card {
+    display: block;
+    cursor: pointer;
+}
+
+.card-choice {
+    border: 2px solid #dee2e6;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: white;
+    height: 100%;
+}
+
+.card-choice:hover {
+    border-color: #adb5bd;
+    transform: translateY(-2px);
+}
+
+.card-choice i {
+    color: #667eea;
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Password Toggle */
+.input-group-text {
+    background-color: transparent;
+    border: 2px solid #dee2e6;
+    border-left: none;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.input-group-text:hover {
+    color: #667eea;
+    background-color: rgba(102, 126, 234, 0.05);
+}
+
+.input-group .form-control {
+    border-right: none;
+}
+
+/* Section Headers */
+h5.text-primary {
+    color: #2c3e50 !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Spacing Improvements */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Error Styling */
+.invalid-feedback {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+/* Responsive Design */
+@media (min-width: 1400px) {
+    .col-xxl-8 {
+        max-width: 1200px;
+    }
+}
+
+@media (max-width: 992px) {
+    .col-lg-8 {
+        width: 100%;
+    }
+    
+    .col-lg-4 {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-check-card {
+        min-width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .d-flex.justify-content-center.gap-4 {
+        flex-direction: column;
+        gap: 1rem !important;
+    }
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap classes to form fields
+    const formFields = {
+        'username': 'form-control',
+        'email': 'form-control',
+        'first_name': 'form-control',
+        'last_name': 'form-control',
+        'password1': 'form-control',
+        'password2': 'form-control',
+        'phone': 'form-control',
+        'specialization': 'form-select',
+        'license_number': 'form-control',
+        'experience': 'form-control',
+        'hospital_name': 'form-control'
+    };
+    
+    // Apply classes to all form fields
+    Object.keys(formFields).forEach(fieldName => {
+        const element = document.querySelector(`[name="${fieldName}"]`);
+        if (element) {
+            element.classList.add(formFields[fieldName]);
+            if (!element.id) {
+                element.id = `id_${fieldName}`;
+            }
+        }
+    });
+    
+    // Add required indicator to labels
+    const requiredFields = ['username', 'email', 'password1', 'password2', 'phone'];
+    requiredFields.forEach(fieldName => {
+        const label = document.querySelector(`label[for="id_${fieldName}"]`);
+        if (label && fieldName !== 'phone') { // Phone is optional
+            label.classList.add('required');
+        }
+    });
+    
+    // User Type Selection with Enhanced UI
     const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
     const doctorFields = document.getElementById('doctor-fields');
     
     function toggleDoctorFields() {
-        const selectedValue = document.querySelector('input[name="user_type"]:checked').value;
-        if (selectedValue === 'doctor') {
+        const selectedValue = document.querySelector('input[name="user_type"]:checked');
+        if (selectedValue && selectedValue.value === 'doctor') {
             doctorFields.style.display = 'block';
-            // Make doctor fields required
-            document.querySelector('select[name="specialization"]').required = true;
-            document.querySelector('input[name="license_number"]').required = true;
-            document.querySelector('input[name="experience"]').required = true;
-            document.querySelector('input[name="hospital_name"]').required = true;
+            
+            // Add required indicator to doctor field labels
+            ['specialization', 'license_number', 'experience', 'hospital_name'].forEach(field => {
+                const label = document.querySelector(`label[for="id_${field}"]`);
+                if (label) {
+                    label.classList.add('required');
+                }
+                
+                const element = document.querySelector(`[name="${field}"]`);
+                if (element) element.required = true;
+            });
         } else {
             doctorFields.style.display = 'none';
-            // Remove required attribute
-            document.querySelector('select[name="specialization"]').required = false;
-            document.querySelector('input[name="license_number"]').required = false;
-            document.querySelector('input[name="experience"]').required = false;
-            document.querySelector('input[name="hospital_name"]').required = false;
+            // Remove required attribute and indicator
+            ['specialization', 'license_number', 'experience', 'hospital_name'].forEach(field => {
+                const label = document.querySelector(`label[for="id_${field}"]`);
+                if (label) {
+                    label.classList.remove('required');
+                }
+                
+                const element = document.querySelector(`[name="${field}"]`);
+                if (element) element.required = false;
+            });
         }
     }
     
     userTypeRadios.forEach(radio => {
         radio.addEventListener('change', toggleDoctorFields);
+        radio.addEventListener('change', function() {
+            // Add visual feedback on selection
+            document.querySelectorAll('.form-check-label-card').forEach(label => {
+                label.classList.remove('active');
+            });
+            if (this.checked) {
+                this.nextElementSibling.classList.add('active');
+            }
+        });
     });
     
     // Initialize on page load
     toggleDoctorFields();
+    
+    // Password Toggle
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const input = this.closest('.input-group').querySelector('input');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+    
+    // Form Validation
+    const form = document.getElementById('registration-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const isRegistrationForm = window.location.pathname.includes('register');
+            
+            function validateForm() {
+                if (isRegistrationForm) {
+                    const userType = document.querySelector('input[name="user_type"]:checked');
+                    if (userType && userType.value === 'doctor') {
+                        // Validate license number
+                        const licenseNumber = document.querySelector('input[name="license_number"]').value;
+                        if (licenseNumber) {
+                            if (!/^\d+$/.test(licenseNumber)) {
+                                alert('License number must contain only numbers.');
+                                return false;
+                            }
+                            if (licenseNumber.length < 4 || licenseNumber.length > 12) {
+                                alert('License number must be between 4 and 12 digits.');
+                                return false;
+                            }
+                        }
+                        
+                        // Validate hospital name
+                        const hospitalName = document.querySelector('input[name="hospital_name"]').value;
+                        if (hospitalName) {
+                            if (hospitalName.length < 3 || hospitalName.length > 100) {
+                                alert('Hospital name must be between 3 and 100 characters.');
+                                return false;
+                            }
+                            if (/^\d+$/.test(hospitalName)) {
+                                alert('Hospital name cannot be only numbers.');
+                                return false;
+                            }
+                            const invalidChars = hospitalName.replace(/[A-Za-z0-9 .,\-&'\/]/g, '');
+                            if (invalidChars.length > 0) {
+                                alert('Hospital name contains invalid characters.');
+                                return false;
+                            }
+                        }
+                    }
+                    
+                    // Validate phone number
+                    const phone = document.querySelector('input[name="phone"]').value;
+                    if (phone && phone.trim() !== '') {
+                        const phoneNum = phone.trim();
+                        if (!/^\d+$/.test(phoneNum)) {
+                            alert('Phone number must contain only digits.');
+                            return false;
+                        }
+                        if (phoneNum.length !== 10) {
+                            alert('Phone number must be exactly 10 digits.');
+                            return false;
+                        }
+                        if (!['7', '8', '9'].includes(phoneNum[0])) {
+                            alert('Phone number must start with 7, 8, or 9.');
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

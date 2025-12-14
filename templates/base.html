@@ -18,6 +18,19 @@
             color: #2c3e50 !important;
         }
 
+        /* Make it responsive for different screen sizes */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        padding: 40px 0;
+    }
+}
+
     </style>
 
 </head>
@@ -68,7 +81,7 @@
     </div>
 </nav>
 
-    <div class="container mt-4">
+    <div class="container m-4">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">{{ message }}</div>

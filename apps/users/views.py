@@ -2,10 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm  # Import custom form
 from .models import Profile
-
-from django.contrib.auth.forms import AuthenticationForm 
 
 # Add the home view function
 def home(request):
@@ -15,8 +13,14 @@ def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Registration successful! Please login.')
+            user = form.save()  # Get the user object
+            
+            # Check if user is doctor or patient
+            if user.profile.user_type == 'doctor':
+                messages.success(request, 'Registration successful! Your account is pending admin approval. Please wait for approval.')
+            else:
+                messages.success(request, 'Registration successful! Please login.')
+            
             return redirect('login')
     else:
         form = CustomUserCreationForm()
@@ -24,39 +28,28 @@ def register(request):
 
 def custom_login(request):
     if request.method == 'POST':
-        # Get username and password from POST data
-        username = request.POST.get('username', '').lower()  # Normalize to lowercase
-        password = request.POST.get('password', '')
+        # Use CustomAuthenticationForm with request.POST data
+        form = CustomAuthenticationForm(request, data=request.POST)
         
-        # Try to authenticate the user
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
+        if form.is_valid():
+            # Authentication successful
+            user = form.get_user()
+            
             # Check if user is a doctor pending approval
             if hasattr(user, 'profile') and user.profile.user_type == 'doctor' and user.profile.status == 'pending':
-                messages.error(request, 'Your account is pending admin approval. Please wait for approval.')
-                form = AuthenticationForm()
+                # Add error to form instead of using messages
+                form.add_error(None, 'Your account is pending admin approval. Please wait for approval.')
                 return render(request, 'registration/login.html', {'form': form})
             
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name}!')
             return redirect('dashboard')
-        else:
-            # Try with original case for backward compatibility
-            original_username = request.POST.get('username', '')
-            user = authenticate(request, username=original_username, password=password)
-            
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Welcome back, {user.first_name}!')
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'Invalid username or password.')
+        # If form is invalid, it will show appropriate error
     else:
-        form = AuthenticationForm()
+        # GET request - create empty form
+        form = CustomAuthenticationForm()
     
     return render(request, 'registration/login.html', {'form': form})
-
 
 @login_required
 def dashboard(request):

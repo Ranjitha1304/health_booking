@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-8" style="padding-bottom: 12px">
         <h2>Upload Medical Report</h2>
         
         {% if not available_categories %}
@@ -39,7 +39,7 @@
                 <select name="category" class="form-control" id="category-select" required>
                     <option value="">Choose a category...</option>
                     {% for cat_code, cat_name in available_categories %}
-                    <option value="{{ cat_code }}">{{ cat_name }}</option>
+                    <option value="{{ cat_code }}" {% if form.category.value == cat_code %}selected{% endif %}>{{ cat_name }}</option>
                     {% endfor %}
                 </select>
                 {% if form.category.errors %}
@@ -48,7 +48,7 @@
                 <small class="text-muted">Select the medical specialty relevant to this report</small>
             </div>
 
-            <!-- Doctor Selection (Optional) -->
+            <!-- Doctor Selection  -->
             <div class="mb-3" id="doctor-selection" style="display: none;">
                 <label for="doctor-select" class="form-label">Share with Doctor</label>
                 <select name="shared_with" class="form-control" id="doctor-select">
@@ -68,9 +68,15 @@
                 <label for="id_report_file" class="form-label">Report File *</label>
                 {{ form.report_file }}
                 {% if form.report_file.errors %}
-                    <div class="text-danger">{{ form.report_file.errors }}</div>
+                    <div class="text-danger">
+                        {% for error in form.report_file.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
                 <small class="text-muted">Supported formats: PDF, JPG, PNG (Max: 10MB)</small>
+                <div id="file-size-error" class="text-danger mt-1" style="display: none;"></div>
+                <div id="file-format-error" class="text-danger mt-1" style="display: none;"></div>
             </div>
 
             <button type="submit" class="btn btn-success">Upload Report</button>
@@ -86,9 +92,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const doctorSelection = document.getElementById('doctor-selection');
     const doctorSelect = document.getElementById('doctor-select');
     const doctorDetails = document.getElementById('doctor-details');
+    const reportFileInput = document.getElementById('id_report_file');
+    const fileSizeError = document.getElementById('file-size-error');
+    const fileFormatError = document.getElementById('file-format-error');
+    const form = document.getElementById('report-form');
     
     // Store doctors data
     let doctorsData = {};
+    
+    // Allowed file extensions
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+    
+    // Client-side file validation
+    reportFileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        fileSizeError.style.display = 'none';
+        fileFormatError.style.display = 'none';
+        
+        if (file) {
+            // File size validation
+            if (file.size > maxFileSize) {
+                const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+                fileSizeError.textContent = `File size (${sizeInMB}MB) exceeds 10MB limit.`;
+                fileSizeError.style.display = 'block';
+                this.value = ''; // Clear the file input
+                return;
+            }
+            
+            // File format validation
+            const fileName = file.name;
+            const fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                fileFormatError.textContent = `Unsupported file format: ${fileExtension}. Allowed formats: ${allowedExtensions.join(', ')}`;
+                fileFormatError.style.display = 'block';
+                this.value = ''; // Clear the file input
+                return;
+            }
+            
+            // Display file info
+            const sizeInKB = (file.size / 1024).toFixed(1);
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+            console.log(`File selected: ${fileName}, Size: ${sizeInKB}KB (${sizeInMB}MB), Type: ${fileExtension}`);
+        }
+    });
     
     // When category changes
     categorySelect.addEventListener('change', function() {
@@ -149,16 +197,79 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form validation
-    const form = document.getElementById('report-form');
     form.addEventListener('submit', function(e) {
         const category = categorySelect.value;
-        const reportFile = document.getElementById('id_report_file').value;
+        const reportFile = reportFileInput.files[0];
         
-        if (!category || !reportFile) {
+        // Basic validation
+        if (!category) {
             e.preventDefault();
-            alert('Please fill in all required fields (Category and Report File).');
+            alert('Please select a report category.');
+            return;
+        }
+        
+        if (!reportFile) {
+            e.preventDefault();
+            alert('Please select a report file to upload.');
+            return;
+        }
+        
+        // Final client-side file validation before submission
+        if (reportFile) {
+            // File size validation
+            if (reportFile.size > maxFileSize) {
+                e.preventDefault();
+                const sizeInMB = (reportFile.size / (1024 * 1024)).toFixed(1);
+                alert(`File size (${sizeInMB}MB) exceeds 10MB limit. Please select a smaller file.`);
+                return;
+            }
+            
+            // File format validation
+            const fileName = reportFile.name;
+            const fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                e.preventDefault();
+                alert(`Unsupported file format: ${fileExtension}. Allowed formats: PDF, JPG, PNG.`);
+                return;
+            }
         }
     });
+    
+    // Initialize category selection if form has errors
+    {% if form.category.value %}
+    categorySelect.value = "{{ form.category.value }}";
+    categorySelect.dispatchEvent(new Event('change'));
+    {% endif %}
+    
+    // Initialize shared_with selection if form has errors
+    {% if form.shared_with.value %}
+    setTimeout(() => {
+        doctorSelect.value = "{{ form.shared_with.value }}";
+        doctorSelect.dispatchEvent(new Event('change'));
+    }, 100);
+    {% endif %}
 });
 </script>
+
+<style>
+/* Add dropdown arrow for all select elements with form-control class */
+select.form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* For better browser compatibility */
+#category-select, #doctor-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+</style>
 {% endblock %}

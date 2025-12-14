@@ -60,7 +60,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="user_id" value="{{ user.id }}">
                                 {% if user.is_active %}
-                                <button type="submit" name="action" value="deactivate" class="btn btn-warning btn-sm">
+                                <button style="margin-bottom:5px" type="submit" name="action" value="deactivate" class="btn btn-warning btn-sm">
                                     <i class="fas fa-user-slash"></i> Deactivate
                                 </button>
                                 {% else %}

@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Welcome, {{ user.first_name }}!</h2>
-<p>User Type: <strong>{{ profile.user_type|title }}</strong></p>
+<h2>Welcome {{ user.first_name }}!</h2>
 
 {% if user.is_staff %}
 <div class="alert alert-info">
